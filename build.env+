@@ -1,0 +1,10 @@
+# 构建相关定义
+
+# wasm内存大小
+MEMORY = 1610612736
+
+#优化参数
+O = 3
+
+WASM_FILE_NAME = wasm.wasm
+BYTES_LIB_NAME = wasm-bytes.js

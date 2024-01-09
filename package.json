@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "name": "base64codec-wasm",
+  "version": "1.0.0",
+  "description": "base64编解码器c实现。",
+  "browser": "./dist/index.js",
+  "scripts": {
+    "preinstall": "node scripts/init-githooks.js",
+    "build": "node scripts/build.js",
+    "preview": "npx http-server"
+  },
+  "author": "lilin <lilin@lilin.site>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lilindog/base64codec-wasm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lilindog/parsbase64codec-wasmeEnv/issues"
+  },
+  "homepage": "https://github.com/lilindog/base64codec-wasm#readme",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "parseenv": "github:lilindog/parseenv#release"
+  }
+}
