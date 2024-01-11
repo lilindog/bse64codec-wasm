@@ -23,9 +23,8 @@ export class ResultDescriptor extends _Descriptor {
 }
 
 export default async function () {
-    const res = await fetch("../dist/wasm.wasm");
-    const _wasm_bytes = await res.arrayBuffer();
-    const { instance: { exports: mod } } = await WebAssembly.instantiate(_wasm_bytes);
+    const { instance: { exports: mod } } = await WebAssembly.instantiate(new Uint8Array(wasm_bytes));
+    return { encode, decode };
 
     /**
      * 编码
@@ -34,26 +33,17 @@ export default async function () {
      * @return {ResultDescriptor}
      */
     function encode (source) {
-        const u8 = _bytes(source);
-        const byteLen = u8.byteLength;
-
-        const 
-            in_point = mod.requestMemory(byteLen),
-            out_point = mod.requestMemory(byteLen + byteLen / 2);
-
-        if ([ in_point, out_point ].some(i => i < 0)) {
-            throw "): wasm 层面内存申请出错！";
-        }
-
+        const [ u8, byteLen, in_point, out_point ] = _prehandle(mod, source);
         new Uint8Array(mod.memory.buffer).set(u8, in_point);
-        console.time("c wasm");
-        mod.base64_encode(in_point, out_point);
-        console.timeEnd("c wasm");
-        const resBytes = _readStringBytes(new Uint8Array(mod.memory.buffer), out_point);
-
+        __BASE64CODEC_WASM_DEBUG__ && console.time("c ine");
+        const en_len = mod.base64_encode(in_point, byteLen, out_point);
+        __BASE64CODEC_WASM_DEBUG__ && console.timeEnd("c ine");
+        const resUi8 = new Uint8Array(mod.memory.buffer, out_point, en_len);
+        mod.releaseMemory(in_point);
+        mod.releaseMemory(out_point);
         return new ResultDescriptor(
-            resBytes.buffer,
-            new TextDecoder().decode(resBytes),
+            resUi8,
+            new TextDecoder().decode(resUi8),
         );
     }
 
@@ -64,39 +54,39 @@ export default async function () {
      * @return {ResultDescriptor}
      */
     function decode (source) {
-        const u8 = _bytes(source);
-        const byteLen = u8.byteLength;
-        const 
-            in_point = mod.requestMemory(byteLen),
-            out_point = mod.requestMemory(byteLen);
-
-        if ([ in_point, out_point ].some(i => i < 0)) {
-            throw "): wasm 层面内存申请出错！";
-        }
+        const [ u8, byteLen, in_point, out_point ] = _prehandle(mod, source);
         new Uint8Array(mod.memory.buffer).set(u8, in_point);
-        mod.base64_decode(in_point, out_point);
-        const resBytes = _readStringBytes(new Uint8Array(mod.memory.buffer), out_point);
+        __BASE64CODEC_WASM_DEBUG__ && console.time("c ind");
+        const de_len = mod.base64_decode(in_point, byteLen, out_point);
+        __BASE64CODEC_WASM_DEBUG__ && console.timeEnd("c ind");
+        const resUi8 = new Uint8Array(mod.memory.buffer, out_point, de_len);
+        mod.releaseMemory(in_point);
+        mod.releaseMemory(out_point);
         return new ResultDescriptor(
-            resBytes.buffer,
-            new TextDecoder().decode(resBytes),
+            resUi8,
+            new TextDecoder().decode(resUi8),
         );
     }
-
-    return { encode, decode };
 }
 
-function _readStringBytes (bytes, point) {
-    const _bytes = [];
-    for (let i = point; bytes[i] !== 0; i++) {
-        _bytes.push(bytes[i]);
+function _prehandle (mod, source) {
+    const u8 = _bytes(source);
+    const byteLen = u8.byteLength;
+    const 
+        in_point = mod.requestMemory(byteLen),
+        out_point = mod.requestMemory(byteLen);
+
+    if ([ in_point, out_point ].some(i => i < 0)) {
+        throw "): wasm 层面内存申请出错！";
     }
-    return new Uint8Array(_bytes);
+
+    return [ u8, byteLen, in_point, out_point ];
 }
 
 function _bytes (source) {
     try {
         return ({
-            "[object ArrayBuffer]": () => new Uint8Array(source),
+            "[object Uint8Array]": () => source,
             "[object String]": () => new TextEncoder().encode(source),
         })[{}.toString.call(source)]();
     } catch {

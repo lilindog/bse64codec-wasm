@@ -2,12 +2,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "memory.h"
 #include "base64.h"
 
 int main  (void)
 {
     printf("start\n");
+
+    char* str = "abcde";
+    char* dest = (char*)malloc(1024 * 1024);
+
+    char* de_dest = (char*)malloc(strlen(str));
+
+    unsigned int len = base64_encode(str, strlen(str), dest);
+    unsigned int delen = base64_decode(dest, len, de_dest);
+
+
+    printf(">> %s\n", str);
+    printf(">> len: %d\n", len);
+    printf(">> %s\n", dest);
+
+    printf(">d %d, %s\n", delen, de_dest);
 
     /*
     char* str = "abcdef";

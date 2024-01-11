@@ -84,7 +84,7 @@ int requestMemory (int size)
         maybeStart = prevNode->start + prevNode->length;
         int space = node->start - maybeStart;
 
-        if (_size >= space)
+        if (space >= _size)
         {
             MemoryBlock newNode = {
                 .start = maybeStart,

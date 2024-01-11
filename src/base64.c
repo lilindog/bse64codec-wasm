@@ -1,6 +1,6 @@
 #include "string.h"
-#include "base64.h"
 #include "wasm.h"
+#define MAGICK_STR "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 static unsigned char* magick_str = (unsigned char*)MAGICK_STR;
 
@@ -21,9 +21,8 @@ static void prehandle_reverse_map ()
 void (*base64_prehandle_reverse_map)(void) = &prehandle_reverse_map;
 
 EXPORT_FUNC
-unsigned char* base64_encode (unsigned char* bytes, unsigned char* dest) 
+unsigned int base64_encode (unsigned char* bytes, unsigned int byteLen, unsigned char* dest) 
 {
-    unsigned long byteLen = _strlen(bytes);
     unsigned long i = 0;
     unsigned long j = 0;
 
@@ -76,16 +75,15 @@ unsigned char* base64_encode (unsigned char* bytes, unsigned char* dest)
         i += 3;
     }
 
-    return dest;
+    return j;
 }
 
 EXPORT_FUNC
-unsigned char* base64_decode (unsigned char* bytes, unsigned char* dest)
+unsigned int base64_decode (unsigned char* bytes, unsigned int byteLen, char* dest)
 {
     prehandle_reverse_map();
-
-    unsigned long byteLen = _strlen(bytes);
-    unsigned long i = 0, j = 0;
+    unsigned long i = 0;
+    unsigned long j = 0;
    
     // 数量一定是4的整数倍
     // 这里暂时不考虑刻意省略pad
@@ -118,5 +116,5 @@ unsigned char* base64_decode (unsigned char* bytes, unsigned char* dest)
 
     dest[j] = '\0';
 
-    return dest;
+    return j;
 }
